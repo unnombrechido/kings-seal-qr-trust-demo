@@ -1,0 +1,12 @@
+{
+  "JupyterLiteSchema": "v0",
+  "JupyterLiteContents": [
+    {
+      "path": "notebooks",
+      "source": "notebooks"
+    }
+  ],
+  "LiteBuildConfig": {
+    "ignore": ["**/__pycache__", "**/*.pyc"]
+  }
+}
