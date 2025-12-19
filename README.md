@@ -24,3 +24,10 @@ Public domain / open source — feel free to fork, improve, or build on it.
 
 ---
 See the [original idea disclosure](https://github.com/unnombrechido/Kings_seal) for full background.
+
+
+**Live Interactive Demo** (no install):  
+https://jupyterlite.github.io/demo/repl/index.html?repo=https://github.com/unnombrechido/kings-seal-qr-trust-demo&path=notebooks/demo.ipynb
+
+**Static View**:  
+https://nbviewer.org/github/unnombrechido/kings-seal-qr-trust-demo/blob/main/notebooks/demo.ipynb
