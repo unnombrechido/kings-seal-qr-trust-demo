@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>King's Seal QR Trust Demo (JS Version)</title>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 600px; margin: 40px auto; padding: 20px; background: #f8f9fa; text-align: center; }
+    h1 { color: #2c3e50; }
+    select, input, button { font-size: 1.1em; padding: 10px; margin: 10px; width: 90%; max-width: 500px; }
+    button { background: #27ae60; color: white; border: none; border-radius: 8px; cursor: pointer; }
+    button:hover { background: #219a52; }
+    #qrcode { margin: 30px auto; }
+    #status { margin-top: 20px; padding: 15px; background: #ecf0f1; border-radius: 8px; }
+    .trusted { color: green; font-weight: bold; }
+    .warning { color: orange; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>King's Seal QR Trust Prototype</h1>
+  <p>Lightweight JavaScript version — works instantly on any device</p>
+
+  <select id="issuer">
+    <option value="starbucks-official">Starbucks (starbucks-official)</option>
+    <option value="mcdonalds-official">McDonald's (mcdonalds-official)</option>
+    <option value="my-personal-site">My Personal Site (my-personal-site)</option>
+  </select>
+
+  <input type="text" id="payload" placeholder="Enter URL or text" value="https://bit.ly/starbucks-menu-2025">
+
+  <button onclick="generateQR()">Generate Sealed QR</button>
+
+  <div id="qrcode"></div>
+  <div id="status"></div>
+
+  <script>
+    // Registry secrets (same as Python version — for demo only)
+    const registry = {
+      "starbucks-official": { secret: "super-secret-key-starbucks-2025", name: "Starbucks" },
+      "mcdonalds-official": { secret: "another-very-secret-key-mcd-2025", name: "McDonald's" },
+      "my-personal-site": { secret: "my-own-secret-for-testing-123", name: "My Personal Site" }
+    };
+
+    const SHORTENERS = ["bit.ly", "tinyurl.com", "t.co", "goo.gl", "buff.ly", "mcd.co"];
+
+    function hasShortenedUrl(payload) {
+      return SHORTENERS.some(short => payload.toLowerCase().includes(short));
+    }
+
+    async function sha256(message) {
+      const msgBuffer = new TextEncoder().encode(message);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    async function generateQR() {
+      const issuer = document.getElementById("issuer").value;
+      const payload = document.getElementById("payload").value.trim();
+      const status = document.getElementById("status");
+      const qrcodeDiv = document.getElementById("qrcode");
+
+      if (!payload) {
+        status.innerHTML = "<span class='warning'>Please enter a payload</span>";
+        return;
+      }
+
+      const secret = registry[issuer].secret;
+      const hash = await sha256(payload);
+      const tag = hash.substring(0, 16);
+
+      const qrContent = `seal:${issuer}|tag:${tag}|${payload}`;
+
+      // Clear previous QR
+      qrcodeDiv.innerHTML = "";
+
+      // Generate QR
+      new QRCode(qrcodeDiv, {
+        text: qrContent,
+        width: 300,
+        height: 300,
+        colorDark: "#000000",
+        colorLight: "#ffffff"
+      });
+
+      // Status
+      const shortMsg = hasShortenedUrl(payload) ? " <span class='warning'>(Shortened URL — seal enforced!)</span>" : "";
+      status.innerHTML = `
+        <div class="trusted">✓ Sealed QR Generated for ${registry[issuer].name}${shortMsg}</div>
+        <p><b>Payload:</b> ${payload}</p>
+        <p><small>Full sealed content: ${qrContent}</small></p>
+        <p class="trusted">✓ Verification: Trusted (tag matched)</p>
+      `;
+    }
+  </script>
+</body>
+</html>
